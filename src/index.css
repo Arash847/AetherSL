@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background: #0b0b14; color: #f1f1f8; font-family: Vazirmatn, Tahoma, system-ui, sans-serif; }
+* { scrollbar-width: thin; scrollbar-color: #3b3b5e transparent; }

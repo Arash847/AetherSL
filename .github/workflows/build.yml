@@ -1,0 +1,99 @@
+# AetherSL — بیلد ویندوز + لینوکس با GitHub Actions
+# استفاده: ریپو را به گیت‌هاب پوش کن، بعد:
+#   1) تب Actions → Build AetherSL → Run workflow (بیلد دستی)، یا
+#   2) یک تگ بزن: git tag v0.1.0 && git push origin v0.1.0 (ریلیز خودکار)
+# خروجی هر ران در تب Actions → بخش Artifacts است:
+#   ویندوز: AetherSL-*-win-x64.exe (NSIS) + portable
+#   لینوکس: AetherSL-*-linux-x64.AppImage + .deb
+# نکته: هسته‌ها (Xray/Aether/Zeptun) داخل نصب‌کننده باندل نمی‌شوند؛
+# اپ بعد از نصب، خودش از داخل برنامه دانلودشان می‌کند (دکمه «دانلود هسته‌ها»).
+# پس بیلد به Rust/Go/Zig نیاز ندارد — فقط Node.js.
+name: Build AetherSL
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # فقط لینوکس: electron-builder برای ساخت .deb به fakeroot/dpkg نیاز دارد
+      - name: Install Linux build deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y fakeroot dpkg
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build renderer + Electron
+        run: npm run build
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        run: npm run dist:win
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        run: npm run dist:linux
+
+      - name: Upload Windows artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherSL-windows-x64
+          path: |
+            release/*.exe
+          if-no-files-found: error
+
+      - name: Upload Linux artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AetherSL-linux-x64
+          path: |
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/AetherSL-windows-x64/*.exe
+            artifacts/AetherSL-linux-x64/*.AppImage
+            artifacts/AetherSL-linux-x64/*.deb
+          body: |
+            AetherSL — ترکیب همزمان Aether و Serverless-for-Iran با رول‌های سفارشی + TUN.
+            هسته‌ها داخل نصب‌کننده نیستند؛ بعد از نصب، از داخل اپ دانلودشان کنید.

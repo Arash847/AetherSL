@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "rules": [
+    {
+      "name": "Discord",
+      "mode": "frag",
+      "transport": "both",
+      "enabled": true,
+      "domains": [
+        "cdn.discordapp.com",
+        "dc-telemetry.net",
+        "discord.com",
+        "discord.gg",
+        "discord.media",
+        "discordapp.com",
+        "discordapp.net",
+        "images-ext-1.discordapp.net",
+        "images-ext-2.discordapp.net",
+        "media.discordapp.net"
+      ],
+      "note": "Frag (profile fragB): Discord is blocked inside Iran by DNS hijacking, and Serverless fixes it via DNS/DoH + fragment while keeping the real Iranian source address. Telegram stays on the tunnel. Side-by-side test: this also re-enables the no-filter-dns -> frag-tls rule, because hasFrag is now true, so the fronted DoH resolver gets a protected outbound again. If the resolver still EOFs, frag is unusable on this network and Discord has to go back to the tunnel."
+    },
+    {
+      "name": "Telegram",
+      "mode": "tunnel",
+      "transport": "both",
+      "enabled": true,
+      "domains": [
+        "cdn-telegram.org",
+        "t.me",
+        "tdesktop.com",
+        "telega.one",
+        "telegra.ph",
+        "telegram-cdn.org",
+        "telegram.dog",
+        "telegram.me",
+        "telegram.org",
+        "telegram.space",
+        "teleso.pe",
+        "toncenter.com",
+        "tx.me",
+        "usercontent.dev"
+      ],
+      "note": "Tunnel because Telegram is filtered at the ISP level and only the tunnel gets through; Telegram has no problem with an Iranian IP."
+    },
+    {
+      "name": "Youtube",
+      "mode": "tunnel",
+      "transport": "both",
+      "enabled": true,
+      "domains": [
+        "googlevideo.com",
+        "rr1---sn-2o25g5-59.googlevideo.com",
+        "rr2---sn-q4fl6nd6.googlevideo.com",
+        "rr3---sn-q4fl6ns6.googlevideo.com",
+        "rr4---sn-u125g5-5i.googlevideo.com",
+        "rr5---sn-h5q7kned.googlevideo.com",
+        "wide-youtube.l.google.com",
+        "www.youtube.com",
+        "yt3.googleusercontent.com"
+      ]
+    },
+    {
+      "name": "Downloads",
+      "mode": "frag",
+      "transport": "both",
+      "enabled": true,
+      "domains": [
+        "charming-glaser.s3.bhs.io.cloud.ovh.net",
+        "link-vault.org"
+      ]
+    }
+  ]
+}
